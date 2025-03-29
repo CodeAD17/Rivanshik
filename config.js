@@ -4,15 +4,15 @@ export const config = {
     yearsExperience: 3,
     
     // Contact Information
-    contactEmail: "celestialinsights@example.com",
-    contactPhone: "+91 98765 43210",
-    contactLocation: "Mumbai, Maharashtra, India",
+    contactEmail: "Rivanshik@example.com",
+    contactPhone: "+91 96281 80928",
+    contactLocation: "Lucknow, Uttar Pradesh, India",
     
     // Service Prices (in INR)
-    natalChartPrice: "4,500",
-    relationshipPrice: "5,500",
-    yearlyForecastPrice: "7,000",
-    careerGuidancePrice: "6,000",
+    natalChartPrice: "450",
+    relationshipPrice: "550",
+    yearlyForecastPrice: "700",
+    careerGuidancePrice: "600",
     
     // Zodiac Settings
     animateZodiac: true,
@@ -21,7 +21,7 @@ export const config = {
     // Testimonials
     testimonials: [
         {
-            quote: "Priya's reading was incredibly accurate and gave me the clarity I needed to make some important life decisions. Her insights into my career path were particularly valuable.",
+            quote: "Rivanshik's reading was incredibly accurate and gave me the clarity I needed to make some important life decisions. Her insights into my career path were particularly valuable.",
             author: "Aditya Patel, Delhi"
         },
         {
