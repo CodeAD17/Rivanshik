@@ -1,18 +1,18 @@
 export const config = {
     // Astrologer Information
-    astrologerName: "Rivanshik",
+    astrologerName: "Abhishek",
     yearsExperience: 3,
     
     // Contact Information
-    contactEmail: "Rivanshik@example.com",
-    contactPhone: "+91 96281 80928",
+    contactEmail: "theastronox@gmail.com",
+    contactPhone: "+91 7607947437",
     contactLocation: "Lucknow, Uttar Pradesh, India",
     
     // Service Prices (in INR)
-    natalChartPrice: "450",
-    relationshipPrice: "550",
-    yearlyForecastPrice: "700",
-    careerGuidancePrice: "600",
+    natalChartPrice: "501",
+    relationshipPrice: "451",
+    yearlyForecastPrice: "451",
+    careerGuidancePrice: "451",
     
     // Zodiac Settings
     animateZodiac: true,

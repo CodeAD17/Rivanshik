@@ -29,6 +29,9 @@ menuToggle.addEventListener('click', () => {
     menuToggle.classList.toggle('active');
     navLinks.classList.toggle('active');
     
+    // Prevent body scrolling when menu is open
+    document.body.style.overflow = menuToggle.classList.contains('active') ? 'hidden' : '';
+    
     // Animate the menu toggle bars
     const spans = menuToggle.querySelectorAll('span');
     if (menuToggle.classList.contains('active')) {
@@ -47,6 +50,7 @@ document.addEventListener('click', (e) => {
     if (!e.target.closest('nav') && !e.target.closest('.menu-toggle')) {
         menuToggle.classList.remove('active');
         navLinks.classList.remove('active');
+        document.body.style.overflow = '';
         
         const spans = menuToggle.querySelectorAll('span');
         spans[0].style.transform = 'none';
@@ -272,75 +276,123 @@ function createMandalaPatterns() {
 function setupTestimonials() {
     let currentIndex = 0;
     
-    // Create testimonials
-    config.testimonials.forEach((testimonial, index) => {
-        const testimonialElement = document.createElement('div');
-        testimonialElement.className = 'testimonial' + (index === 0 ? ' active' : '');
-        testimonialElement.innerHTML = `
-            <div class="testimonial-quote">${testimonial.quote}</div>
-            <div class="testimonial-author">${testimonial.author}</div>
+    // Clear existing content
+    testimonialContainer.innerHTML = '';
+    carouselIndicators.innerHTML = '';
+    
+    // Create single testimonial display
+    const testimonialDisplay = document.createElement('div');
+    testimonialDisplay.className = 'testimonial-display';
+    testimonialContainer.appendChild(testimonialDisplay);
+    
+    // Create and display first testimonial
+    function displayTestimonial(index) {
+        testimonialDisplay.innerHTML = `
+            <div class="testimonial-content">
+                <div class="testimonial-quote">${config.testimonials[index].quote}</div>
+                <div class="testimonial-author">${config.testimonials[index].author}</div>
+            </div>
         `;
-        testimonialContainer.appendChild(testimonialElement);
-        
-        // Create indicator
+    }
+    
+    // Create indicators
+    config.testimonials.forEach((_, index) => {
         const indicator = document.createElement('div');
         indicator.className = 'indicator' + (index === 0 ? ' active' : '');
-        indicator.addEventListener('click', () => {
-            goToSlide(index);
-        });
+        indicator.addEventListener('click', () => goToSlide(index));
         carouselIndicators.appendChild(indicator);
     });
     
-    // Next and previous buttons
     function goToSlide(index) {
-        const testimonials = document.querySelectorAll('.testimonial');
         const indicators = document.querySelectorAll('.indicator');
         
-        // Remove active class from current
-        testimonials[currentIndex].classList.remove('active');
+        // Remove active class from current indicator
         indicators[currentIndex].classList.remove('active');
         
         // Update index
         currentIndex = index;
-        if (currentIndex < 0) currentIndex = testimonials.length - 1;
-        if (currentIndex >= testimonials.length) currentIndex = 0;
+        if (currentIndex < 0) currentIndex = config.testimonials.length - 1;
+        if (currentIndex >= config.testimonials.length) currentIndex = 0;
         
-        // Add active class to new
-        testimonials[currentIndex].classList.add('active');
+        // Add active class to new indicator
         indicators[currentIndex].classList.add('active');
+        
+        // Fade out current testimonial
+        testimonialDisplay.style.opacity = '0';
+        
+        // After fade out, update content and fade in
+        setTimeout(() => {
+            displayTestimonial(currentIndex);
+            testimonialDisplay.style.opacity = '1';
+        }, 300);
     }
     
-    // Event listeners for buttons
-    nextBtn.addEventListener('click', () => {
-        goToSlide(currentIndex + 1);
-    });
+    // Display first testimonial
+    displayTestimonial(currentIndex);
     
-    prevBtn.addEventListener('click', () => {
-        goToSlide(currentIndex - 1);
-    });
+    // Event listeners for buttons
+    nextBtn.addEventListener('click', () => goToSlide(currentIndex + 1));
+    prevBtn.addEventListener('click', () => goToSlide(currentIndex - 1));
     
     // Auto-slide testimonials
-    setInterval(() => {
-        goToSlide(currentIndex + 1);
-    }, 8000);
+    let autoSlideInterval = setInterval(() => goToSlide(currentIndex + 1), 8000);
+    
+    // Pause auto-slide on hover
+    testimonialContainer.addEventListener('mouseenter', () => clearInterval(autoSlideInterval));
+    testimonialContainer.addEventListener('mouseleave', () => {
+        autoSlideInterval = setInterval(() => goToSlide(currentIndex + 1), 8000);
+    });
 }
 
 // Form submission
 const contactForm = document.querySelector('.contact-form');
-contactForm.addEventListener('submit', (e) => {
+contactForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    // In a real application, you would process the form data here
-    // For this example, just show a confirmation message
+    // Show loading state
+    const submitBtn = contactForm.querySelector('.submit-btn');
+    const originalBtnText = submitBtn.textContent;
+    submitBtn.textContent = 'Sending...';
+    submitBtn.disabled = true;
+    
+    // Get form data
     const formData = new FormData(contactForm);
-    let message = 'Thank you for contacting us!\n\nYour details:\n';
-    
-    for (const [key, value] of formData.entries()) {
-        message += `${key}: ${value}\n`;
+    const templateParams = {
+        to_email: 'theastronox@gmail.com',
+        from_name: formData.get('name'),
+        from_email: formData.get('email'),
+        phone: formData.get('phone'),
+        birth_date: formData.get('birth-date'),
+        birth_time: formData.get('birth-time'),
+        birth_place: formData.get('birth-place'),
+        service: formData.get('service'),
+        message: formData.get('message')
+    };
+
+    try {
+        // Send email using EmailJS
+        const response = await emailjs.send(
+            'service_2dkmuk4',
+            'template_9tqwchf',
+            templateParams
+        );
+
+        if (response.status === 200) {
+            // Show success message
+            alert('Thank you for your message! We will get back to you soon.');
+            contactForm.reset();
+        } else {
+            throw new Error('Failed to send email');
+        }
+    } catch (error) {
+        // Show error message
+        console.error('Error:', error);
+        alert('Sorry, there was an error sending your message. Please try again or contact us directly at theastronox@gmail.com');
+    } finally {
+        // Reset button state
+        submitBtn.textContent = originalBtnText;
+        submitBtn.disabled = false;
     }
-    
-    alert(message);
-    contactForm.reset();
 });
 
 // Initialize everything when the DOM is loaded
@@ -356,21 +408,22 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const target = document.querySelector(this.getAttribute('href'));
             if (target) {
+                const headerHeight = document.querySelector('header').offsetHeight;
                 window.scrollTo({
-                    top: target.offsetTop - 80,
+                    top: target.offsetTop - headerHeight,
                     behavior: 'smooth'
                 });
             }
         });
     });
     
-    // Animation on scroll
+    // Improved animation on scroll
     const sections = document.querySelectorAll('section');
     
     const observerOptions = {
         root: null,
         rootMargin: '0px',
-        threshold: 0.1
+        threshold: 0.15
     };
     
     const observer = new IntersectionObserver((entries) => {
@@ -378,18 +431,32 @@ document.addEventListener('DOMContentLoaded', () => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('fade-in');
                 
-                // Add specific animations for different sections
                 if (entry.target.classList.contains('about')) {
-                    gsap.from('.about-image', { opacity: 0, x: -50, duration: 1, delay: 0.3 });
-                    gsap.from('.about-text', { opacity: 0, x: 50, duration: 1, delay: 0.3 });
+                    gsap.from('.about-image', { 
+                        opacity: 0, 
+                        x: window.innerWidth <= 768 ? 0 : -50, 
+                        y: window.innerWidth <= 768 ? 30 : 0,
+                        duration: 0.8, 
+                        delay: 0.2,
+                        clearProps: 'all'
+                    });
+                    gsap.from('.about-text', { 
+                        opacity: 0, 
+                        x: window.innerWidth <= 768 ? 0 : 50,
+                        y: window.innerWidth <= 768 ? 30 : 0, 
+                        duration: 0.8, 
+                        delay: 0.2,
+                        clearProps: 'all'
+                    });
                 }
                 
                 if (entry.target.classList.contains('services')) {
                     gsap.from('.service-card', { 
                         opacity: 0, 
-                        y: 50, 
-                        duration: 0.8, 
-                        stagger: 0.2 
+                        y: 30, 
+                        duration: 0.6, 
+                        stagger: 0.15,
+                        clearProps: 'all'
                     });
                 }
                 
@@ -403,7 +470,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Add the new animation to stylesheet
+// Update the animation styles
 const styleSheet = document.createElement('style');
 styleSheet.textContent = `
     @keyframes twinkle {
@@ -413,17 +480,272 @@ styleSheet.textContent = `
     
     @keyframes floatRangoli {
         0% { transform: translate(0, 0) rotate(0deg); }
-        50% { transform: translate(${Math.random() * 30 - 15}px, ${Math.random() * 30 - 15}px) rotate(180deg); }
-        100% { transform: translate(${Math.random() * 20 - 10}px, ${Math.random() * 20 - 10}px) rotate(360deg); }
+        50% { transform: translate(10px, 10px) rotate(180deg); }
+        100% { transform: translate(0, 0) rotate(360deg); }
     }
     
     .fade-in {
-        animation: fadeIn 1s ease forwards;
+        animation: fadeIn 0.8s ease forwards;
     }
     
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+        from { 
+            opacity: 0; 
+            transform: translateY(15px); 
+        }
+        to { 
+            opacity: 1; 
+            transform: translateY(0); 
+        }
+    }
+
+    @media (max-width: 768px) {
+        .service-card {
+            width: 100%;
+            margin: 1rem 0;
+        }
+        
+        .testimonial {
+            padding: 1rem;
+        }
+        
+        .testimonial-quote {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .testimonial-author {
+            font-size: 0.8rem;
+        }
+    }
+
+    .testimonial-display {
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+        opacity: 1;
+        transition: opacity 0.3s ease;
+        padding: 2rem 1rem;
+        position: relative;
+    }
+    
+    .testimonial-content {
+        text-align: center;
+        padding: 0 20px;
+    }
+    
+    .testimonial-quote {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+        color: #333;
+    }
+    
+    .testimonial-author {
+        font-weight: bold;
+        color: #6b275a;
+        font-size: 1rem;
+    }
+    
+    .carousel-controls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .carousel-indicators {
+        display: flex;
+        gap: 0.8rem;
+    }
+    
+    .indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #ddd;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .indicator.active {
+        background-color: #6b275a;
+        transform: scale(1.2);
+    }
+    
+    .prev-btn,
+    .next-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.8rem;
+        color: #6b275a;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .prev-btn:hover,
+    .next-btn:hover {
+        opacity: 0.7;
+        transform: scale(1.1);
+    }
+
+    @media (max-width: 768px) {
+        .testimonial-display {
+            padding: 1rem;
+        }
+        
+        .testimonial-quote {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+        
+        .testimonial-author {
+            font-size: 0.9rem;
+        }
+        
+        .carousel-controls {
+            margin-top: 1rem;
+            gap: 1rem;
+        }
+        
+        .indicator {
+            width: 8px;
+            height: 8px;
+        }
+    }
+
+    .submit-btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        background-color: #999;
+    }
+
+    .submit-btn {
+        transition: all 0.3s ease;
+    }
+
+    @media (max-width: 768px) {
+        header {
+            padding: 0.7rem 5% !important;
+            width: 100% !important;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        .logo-text {
+            font-size: 1.2rem;
+        }
+
+        .nav-links {
+            position: fixed;
+            top: 70px;
+            left: -100%;
+            width: 100%;
+            height: auto;
+            background: rgba(255, 255, 255, 0.95);
+            flex-direction: column;
+            padding: 1rem 0;
+            transition: left 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-links.active {
+            left: 0;
+        }
+
+        .nav-links li {
+            margin: 1rem 0;
+            width: 100%;
+            text-align: center;
+        }
+
+        .hero-content {
+            padding: 2rem 1rem;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .hero-content h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero-content p {
+            font-size: 1.1rem;
+        }
+
+        .zodiac-wheel {
+            width: 70%;
+            max-width: 300px;
+            margin: 2rem auto;
+        }
+
+        .cta-button {
+            display: inline-block;
+            margin: 3rem auto;
+        }
+
+        .stars-container {
+            overflow: hidden;
+            width: 100%;
+        }
+
+        main {
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        section {
+            padding: 3rem 1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .section-header {
+            margin-bottom: 2rem;
+        }
+
+        .section-header h2 {
+            font-size: 1.8rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .rangoli-pattern {
+            width: 40px !important;
+            height: 40px !important;
+        }
+
+        @keyframes floatRangoli {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(5px, 5px) rotate(180deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        .zodiac-svg {
+            transform-origin: center;
+            width: 100%;
+            height: auto;
+        }
     }
 `;
 document.head.appendChild(styleSheet);

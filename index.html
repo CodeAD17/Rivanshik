@@ -1,7 +1,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Celestial Insights | Rivanshik</title>
     <link rel="stylesheet" href="styles.css">
     <script type="importmap">
@@ -13,6 +13,12 @@
     </script>
     <script type="module" src="config.js"></script>
     <script type="module" src="script.js" defer></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("kRWpctgzcIcFjV5bW");
+        })();
+    </script>
 </head>
 <body>
     <div class="stars-container"></div>
@@ -150,13 +156,13 @@
                     <!-- Testimonials will be added with JavaScript -->
                 </div>
                 <div class="carousel-controls">
-                    <button class="prev-btn">
+                    <button class="prev-btn" aria-label="Previous testimonial">
                         <svg viewBox="0 0 24 24" width="24" height="24">
                             <path d="M15 6L9 12L15 18" stroke="currentColor" stroke-width="2" fill="none" />
                         </svg>
                     </button>
                     <div class="carousel-indicators"></div>
-                    <button class="next-btn">
+                    <button class="next-btn" aria-label="Next testimonial">
                         <svg viewBox="0 0 24 24" width="24" height="24">
                             <path d="M9 6L15 12L9 18" stroke="currentColor" stroke-width="2" fill="none" />
                         </svg>
